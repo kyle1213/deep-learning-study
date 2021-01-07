@@ -1,4 +1,5 @@
  making VGG16 with cifar-100
+ 
 First try, lr=0.0001, epochs=10, batch size=100, last feature map is 1 * 1 *512 connected with 4096 FCL
 Result was bad(test accuracy 14%). I think the last feature map size and the first FCL size gap is too big.
 

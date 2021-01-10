@@ -18,7 +18,6 @@ test = torchvision.datasets.CIFAR100(root='CIFAR-100/',
                                      download=True)
 
 train_loader = torch.utils.data.DataLoader(dataset=train, batch_size=256, shuffle=True)
-train_test_loader = torch.utils.data.DataLoader(dataset=train, batch_size=128, shuffle=True)
 test_loader = torch.utils.data.DataLoader(dataset=test, batch_size=128, shuffle=True)
 
 cuda = torch.device('cuda')
@@ -72,31 +71,13 @@ class VGG(nn.Module):
                                      nn.ReLU(),
                                      nn.MaxPool2d(kernel_size=2, stride=2)
                                      )
-        self.layer_4 = nn.Sequential(nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3,
-                                               stride=1, padding=1),
-                                     nn.ReLU(),
-                                     nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3,
-                                               stride=1, padding=1),
-                                     nn.ReLU(),
-                                     nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3,
-                                               stride=1, padding=1),
-                                     nn.ReLU(),
-                                     nn.MaxPool2d(kernel_size=2, stride=2)
-                                     )
-        self.layer_5 = nn.Sequential(nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3,
-                                               stride=1, padding=1),
-                                     nn.ReLU(),
-                                     nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3,
-                                               stride=1, padding=1),
-                                     nn.ReLU(),
-                                     nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3,
-                                               stride=1, padding=1),
-                                     nn.ReLU(),
-                                     nn.MaxPool2d(kernel_size=2, stride=2)
-                                     )
-        self.layer_6 = nn.Sequential(nn.Flatten(),
+        self.layer_4 = nn.Sequential(nn.Flatten(),
                                      nn.Linear(4*4*512, 4096, bias=True),
+                                     nn.ReLU(),
+                                     nn.Dropout(),
                                      nn.Linear(4096, 4096, bias=True),
+                                     nn.ReLU(),
+                                     nn.Dropout(),
                                      nn.Linear(4096, 100, bias=True)
                                      )
 
@@ -104,9 +85,7 @@ class VGG(nn.Module):
         x = self.layer_1(x)
         x = self.layer_2(x)
         x = self.layer_3(x)
-        # x = self.layer_4(x)
-        # x = self.layer_5(x)
-        x = self.layer_6(x)
+        x = self.layer_4(x)
         return x
 
 

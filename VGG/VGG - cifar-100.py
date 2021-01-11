@@ -6,19 +6,25 @@ import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 
 
-transform = transforms.Compose(
+train_transform = transforms.Compose(
+    [transforms.RandomCrop(32, padding=4),
+     transforms.RandomHorizontalFlip(),
+     transforms.ToTensor(),
+     transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))])
+
+test_transform = transforms.Compose(
     [transforms.ToTensor(),
-     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+     transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))])
 
 train = torchvision.datasets.CIFAR100(root='CIFAR-100/',
-                                      train=True, transform=transform,
+                                      train=True, transform=train_transform,
                                       download=True)
 test = torchvision.datasets.CIFAR100(root='CIFAR-100/',
-                                     train=False, transform=transform,
+                                     train=False, transform=test_transform,
                                      download=True)
 
-train_loader = torch.utils.data.DataLoader(dataset=train, batch_size=256, shuffle=True)
-test_loader = torch.utils.data.DataLoader(dataset=test, batch_size=128, shuffle=True)
+train_loader = torch.utils.data.DataLoader(dataset=train, batch_size=100, shuffle=True)
+test_loader = torch.utils.data.DataLoader(dataset=test, batch_size=100, shuffle=True)
 
 cuda = torch.device('cuda')
 
@@ -28,21 +34,16 @@ class VGG(nn.Module):
         super(VGG, self).__init__()
         # 16
         self.layer_1 = nn.Sequential(nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3,
-                                             stride=1, padding=1),
+                                               stride=1, padding=1),
                                      nn.BatchNorm2d(64),
                                      nn.ReLU(),
                                      nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3,
-                                             stride=1, padding=1),
-                                     nn.BatchNorm2d(64),
-                                     nn.ReLU(),
-                                     nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3,
                                                stride=1, padding=1),
-                                     nn.BatchNorm2d(128),
+                                     nn.BatchNorm2d(64),
                                      nn.ReLU(),
                                      nn.MaxPool2d(kernel_size=2, stride=2)
                                      )
-        # 8
-        self.layer_2 = nn.Sequential(nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3,
+        self.layer_2 = nn.Sequential(nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3,
                                                stride=1, padding=1),
                                      nn.BatchNorm2d(128),
                                      nn.ReLU(),
@@ -50,14 +51,10 @@ class VGG(nn.Module):
                                                stride=1, padding=1),
                                      nn.BatchNorm2d(128),
                                      nn.ReLU(),
-                                     nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3,
-                                               stride=1, padding=1),
-                                     nn.BatchNorm2d(256),
-                                     nn.ReLU(),
                                      nn.MaxPool2d(kernel_size=2, stride=2)
                                      )
-        # 4
-        self.layer_3 = nn.Sequential(nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3,
+        # 8
+        self.layer_3 = nn.Sequential(nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3,
                                                stride=1, padding=1),
                                      nn.BatchNorm2d(256),
                                      nn.ReLU(),
@@ -65,20 +62,48 @@ class VGG(nn.Module):
                                                stride=1, padding=1),
                                      nn.BatchNorm2d(256),
                                      nn.ReLU(),
-                                     nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3,
+                                     nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3,
+                                               stride=1, padding=1),
+                                     nn.BatchNorm2d(256),
+                                     nn.ReLU(),
+                                     nn.MaxPool2d(kernel_size=2, stride=2)
+                                     )
+        self.layer_4 = nn.Sequential(nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3,
+                                               stride=1, padding=1),
+                                     nn.BatchNorm2d(512),
+                                     nn.ReLU(),
+                                     nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3,
+                                               stride=1, padding=1),
+                                     nn.BatchNorm2d(512),
+                                     nn.ReLU(),
+                                     nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3,
                                                stride=1, padding=1),
                                      nn.BatchNorm2d(512),
                                      nn.ReLU(),
                                      nn.MaxPool2d(kernel_size=2, stride=2)
                                      )
-        self.layer_4 = nn.Sequential(nn.Flatten(),
-                                     nn.Linear(4*4*512, 4096, bias=True),
+        # 4
+        self.layer_5 = nn.Sequential(nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3,
+                                               stride=1, padding=1),
+                                     nn.BatchNorm2d(512),
                                      nn.ReLU(),
-                                     nn.Dropout(),
-                                     nn.Linear(4096, 4096, bias=True),
+                                     nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3,
+                                               stride=1, padding=1),
+                                     nn.BatchNorm2d(512),
                                      nn.ReLU(),
+                                     nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3,
+                                               stride=1, padding=1),
+                                     nn.BatchNorm2d(512),
+                                     nn.ReLU(),
+                                     nn.MaxPool2d(kernel_size=2, stride=2)
+                                     )
+        self.layer_6 = nn.Sequential(nn.Linear(512, 512),
+                                     nn.ReLU(True),
                                      nn.Dropout(),
-                                     nn.Linear(4096, 100, bias=True)
+                                     nn.Linear(512, 512),
+                                     nn.ReLU(True),
+                                     nn.Dropout(),
+                                     nn.Linear(512, 100)
                                      )
 
     def forward(self, x):
@@ -86,6 +111,9 @@ class VGG(nn.Module):
         x = self.layer_2(x)
         x = self.layer_3(x)
         x = self.layer_4(x)
+        x = self.layer_5(x)
+        x = x.view(x.size(0), -1)
+        x = self.layer_6(x)
         return x
 
 
@@ -93,8 +121,8 @@ model = VGG()
 model = model.cuda()
 
 loss = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.00001)
-
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=5e-4, momentum=0.9)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5000, gamma=0.5)
 cost = 0
 
 iterations = []
@@ -114,6 +142,7 @@ for epoch in range(100):
         cost = loss(hypo, Y)
         cost.backward()
         optimizer.step()
+        scheduler.step()
         prediction = hypo.data.max(1)[1]
         correct += prediction.eq(Y.data).sum()
 
@@ -128,6 +157,7 @@ for epoch in range(100):
         correct2 += prediction.eq(target.data).sum()
 
     print("Epoch : {:>4} / cost : {:>.9}".format(epoch + 1, cost))
+    print("lr : {:>6}".format(scheduler.optimizer.state_dict()['param_groups'][0]['lr']))
     iterations.append(epoch)
     train_losses.append(cost.tolist())
     test_losses.append(cost2.tolist())

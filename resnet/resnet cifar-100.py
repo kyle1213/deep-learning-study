@@ -6,18 +6,24 @@ import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 
 
-transform = transforms.Compose(
+train_transform = transforms.Compose(
+    [transforms.RandomCrop(32, padding=4),
+     transforms.RandomHorizontalFlip(),
+     transforms.ToTensor(),
+     transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))])
+
+test_transform = transforms.Compose(
     [transforms.ToTensor(),
-     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+     transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))])
 
 train = torchvision.datasets.CIFAR100(root='CIFAR-100/',
-                                      train=True, transform=transform,
+                                      train=True, transform=train_transform,
                                       download=True)
 test = torchvision.datasets.CIFAR100(root='CIFAR-100/',
-                                     train=False, transform=transform,
+                                     train=False, transform=test_transform,
                                      download=True)
 
-train_loader = torch.utils.data.DataLoader(dataset=train, batch_size=256, shuffle=True)
+train_loader = torch.utils.data.DataLoader(dataset=train, batch_size=128, shuffle=True)
 test_loader = torch.utils.data.DataLoader(dataset=test, batch_size=128, shuffle=True)
 
 cuda = torch.device('cuda')
@@ -96,10 +102,10 @@ class ResNet(nn.Module):
             nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(512)
         )
-        # 4 4 512
+        self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
+        # 2 2 512
         self.fc_layer = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(4 * 4 * 512, 100)
+            nn.Linear(2 * 2 * 512, 100)
         )
 
     def forward(self, x):
@@ -142,7 +148,9 @@ class ResNet(nn.Module):
 
         x = self.conv5_2_layer(x)
         x = nn.ReLU()(x + shortcut)
+        x = self.maxpool(x)
 
+        x = x.view(x.size(0), -1)
         x = self.fc_layer(x)
 
         return x
@@ -152,8 +160,8 @@ model = ResNet()
 model = model.cuda()
 
 loss = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=5e-4, momentum=0.9)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5000, gamma=0.5) # 10 epochs
 cost = 0
 
 iterations = []
@@ -162,7 +170,7 @@ test_losses = []
 train_acc = []
 test_acc = []
 
-for epoch in range(20):
+for epoch in range(100):
     model.train()
     correct = 0
     for X, Y in train_loader:
@@ -173,6 +181,7 @@ for epoch in range(20):
         cost = loss(hypo, Y)
         cost.backward()
         optimizer.step()
+        scheduler.step()
         prediction = hypo.data.max(1)[1]
         correct += prediction.eq(Y.data).sum()
 

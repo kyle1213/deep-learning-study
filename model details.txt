@@ -1,0 +1,12 @@
+architecture : 
+learning rate : 
+scheduler : 
+weight decay : 
+momentum : 
+optimizer : 
+epochs : 
+data set : 
+batch size : 
+parameter : 
+
+other details : 

@@ -5,18 +5,20 @@ import torchvision.transforms as transforms
 from torchsummary import summary as summary_
 import matplotlib.pyplot as plt
 
+
 train_transform = transforms.Compose(
     [transforms.RandomCrop(32, padding=4),
      transforms.RandomHorizontalFlip(),
      transforms.ToTensor(),
      transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))])
+
 test_transform = transforms.Compose(
     [transforms.ToTensor(),
      transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))])
 
 train = torchvision.datasets.CIFAR100(root='C:/Users/Admin/Desktop/파이토치 연습/CIFAR-100',
-                                      train=True, transform=train_transform,
-                                      download=True)
+                                        train=True, transform=train_transform,
+                                        download=True)
 test = torchvision.datasets.CIFAR100(root='C:/Users/Admin/Desktop/파이토치 연습/CIFAR-100',
                                      train=False, transform=test_transform,
                                      download=True)
@@ -32,11 +34,9 @@ class ResNet(nn.Module):
         super(ResNet, self).__init__()
         self.conv1 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=1, stride=2, padding=0)
         self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=1, stride=2, padding=0)
-        self.conv3 = nn.Conv2d(in_channels=64, out_channels=100, kernel_size=1, stride=2, padding=0)
         self.batch1 = nn.BatchNorm2d(32)
         self.batch2 = nn.BatchNorm2d(64)
-        self.batch3 = nn.BatchNorm2d(100)
-        self.avgpool = nn.AvgPool2d(kernel_size=4, stride=4)
+        self.avgpool = nn.AvgPool2d(kernel_size=2, stride=2)
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
         self.relu = nn.ReLU()
         self.conv0_layer = nn.Sequential(
@@ -73,24 +73,17 @@ class ResNet(nn.Module):
         )
         self.conv3_2_layer = nn.Sequential(
             nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(64)
         )
-        self.conv4_layer = nn.Sequential(
-            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=64, out_channels=100, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(100)
-        )
         self.fc_layer = nn.Sequential(
+            nn.Linear(64, 100),
+            nn.ReLU(),
             nn.Linear(100, 100)
         )
 
     def forward(self, x):
         x = self.conv0_layer(x)
+        x = self.maxpool(x)
         shortcut = x
 
         x = self.conv1_layer(x)
@@ -117,13 +110,11 @@ class ResNet(nn.Module):
 
         x = self.conv3_2_layer(x)
         x = self.relu(x + shortcut)
-        shortcut = self.conv3(x)
-        shortcut = self.batch3(shortcut)
 
-        x = self.conv4_layer(x)
-        x = self.relu(x + shortcut)
+        x = self.maxpool(x)
 
         x = self.avgpool(x)
+
         x = x.view(x.size(0), -1)
         x = self.fc_layer(x)
 
@@ -135,7 +126,7 @@ model = model.cuda()
 
 loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=5e-4, momentum=0.9)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20000, gamma=0.1)  # 30 epochs
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10000, gamma=0.1)  # 20 epochs
 cost = 0
 cost2 = 0
 summary_(model, (3, 32, 32), batch_size=1)
@@ -146,7 +137,7 @@ test_losses = []
 train_acc = []
 test_acc = []
 
-for epoch in range(200):
+for epoch in range(100):
     model.train()
     correct = 0
     for X, Y in train_loader:

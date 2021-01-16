@@ -76,7 +76,7 @@ class ResNet(nn.Module):
             nn.BatchNorm2d(64)
         )
         self.fc_layer = nn.Sequential(
-            nn.Linear(128, 100),
+            nn.Linear(64, 100),
             nn.ReLU(),
             nn.Linear(100, 100)
         )
@@ -148,10 +148,7 @@ class ResNet(nn.Module):
         x = self.avgpool(x)
         x2 = self.avgpool(x2)
 
-        x = self.batch2(x)
-        x2 = self.batch2(x)
-
-        x = torch.cat([x, x2], dim=1)
+        x = (x + x2)/2
 
         x = x.view(x.size(0), -1)
         x = self.fc_layer(x)
@@ -164,7 +161,7 @@ model = model.cuda()
 
 loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=5e-4, momentum=0.9)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10000, gamma=0.1)  # 30 epochs
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10000, gamma=0.1)  # 20 epochs
 cost = 0
 cost2 = 0
 summary_(model, (3, 32, 32), batch_size=1)

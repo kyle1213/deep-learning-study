@@ -3,6 +3,8 @@ import torch.nn as nn
 import torchvision
 import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
+from PIL import Image
+import sys
 
 transform = transforms.Compose([
     # you can add other transformations in this list
@@ -10,11 +12,22 @@ transform = transforms.Compose([
     transforms.ToTensor()
 ])
 
-train = torchvision.datasets.VOCSegmentation(root='VOC-2012/',
-                                             year='2012', image_set='train', transform=transform,
+test = torchvision.datasets.VOCSegmentation(root='VOC-2012/',
+                                             year='2012', image_set='val', transform=transform,
                                              target_transform=transform, download=True)
 
-train_loader = torch.utils.data.DataLoader(dataset=train, batch_size=1, shuffle=True)
+test_loader = torch.utils.data.DataLoader(dataset=test, batch_size=1, shuffle=False)
+
+transform_2 = transforms.Compose([
+    # you can add other transformations in this list
+    transforms.Resize((416, 416))
+])
+
+img = torchvision.datasets.VOCSegmentation(root='VOC-2012/',
+                                             year='2012', image_set='val', transform=transform_2,
+                                             target_transform=transform_2, download=True)
+
+img_loader = torch.utils.data.DataLoader(dataset=img, batch_size=1, shuffle=False)
 
 cuda = torch.device('cuda')
 
@@ -120,68 +133,13 @@ class VGG(nn.Module):
 
 
 model = VGG()
-model = model.cuda()
-
-loss = nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=5e-4, momentum=0.9)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5000, gamma=0.5)
-cost = 0
-
-iterations = []
-train_losses = []
-train_acc = []
-print("starting")
-for epoch in range(10):
-    model.train()
-    correct = 0
-    for X, Y in train_loader:
-        torch.cuda.empty_cache()
-        X = X.to(cuda)
-        Y = Y.to(cuda)
-        optimizer.zero_grad()
-        output = model(X)
-        Y = Y.squeeze(1)
-        cost = loss(output, Y.long())
-        cost.backward()
-        optimizer.step()
-        scheduler.step()
-        prediction = output.data.max(1)[1]
-        correct += prediction.eq(Y.data).sum()
-
-    print("Epoch : {:>4} / cost : {:>.9}".format(epoch + 1, cost))
-    print("lr : {:>6}".format(scheduler.optimizer.state_dict()['param_groups'][0]['lr']))
-    iterations.append(epoch)
-    train_losses.append(cost.tolist())
-    train_acc.append((100*correct/len(train_loader.dataset)).tolist())
-
-torch.save(model.state_dict(), './vggfcn model/model.pt')
-
-plt.subplot(121)
-plt.plot(range(1, len(iterations)+1), train_losses, 'b--')
-plt.subplot(122)
-plt.plot(range(1, len(iterations)+1), train_acc, 'b-')
-plt.title('loss and accuracy')
-plt.show()
-# del train_loader
-# torch.cuda.empty_cache()
-"""
+model.load_state_dict(torch.load('./vggfcn model/model.pt'))
 model.eval()
-correct = 0
-for data, target in test_loader:
-    data = data.to(cuda)
-    target = target.to(cuda)
-    output = model(data)
-    prediction = output.data.max(1)[1]
-    correct += prediction.eq(target.data).sum()
 
-print('Test set: Accuracy: {:.2f}%'.format(100. * correct / len(test_loader.dataset)))
 
-plt.subplot(121)
-plt.plot(range(1, len(iterations)+1), train_losses, 'b--')
-plt.plot(range(1, len(iterations)+1), test_losses, 'r--')
-plt.subplot(122)
-plt.plot(range(1, len(iterations)+1), train_acc, 'b-')
-plt.plot(range(1, len(iterations)+1), test_acc, 'r-')
-plt.title('loss and accuracy')
-plt.show()
-"""
+for x, y in test_loader:
+    sys.stdout = open('stdout.txt', 'w')
+    print(model(x))
+    print(y)
+    sys.stdout.close()
+    break

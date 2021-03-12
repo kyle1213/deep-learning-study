@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
 import torchvision
-import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
-from PIL import Image
-import sys
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 transform = transforms.Compose([
     # you can add other transformations in this list
@@ -138,8 +138,28 @@ model.eval()
 
 
 for x, y in test_loader:
-    sys.stdout = open('stdout.txt', 'w')
-    print(model(x))
-    print(y)
-    sys.stdout.close()
+    a = model(x)
+    b = y
     break
+
+a = a.detach()
+a = a.numpy()
+b = b.detach()
+b = b.numpy()
+a = np.squeeze(a, 0)
+b = np.squeeze(b, 0)
+b = np.squeeze(b, 0)
+
+fig = plt.figure()
+c = np.zeros((416, 416))
+for i in range(21):
+    for j in range(416):
+        for k in range(416):
+            if(c[j][k] <= a[i][j][k]):
+                c[j][k] = a[i][j][k]
+ax1 = fig.add_subplot(121)
+ax1.imshow(c, interpolation='nearest', cmap=cm.Greys_r)
+ax1 = fig.add_subplot(122)
+ax1.imshow(b, interpolation='nearest', cmap=cm.Greys_r)
+
+plt.show()

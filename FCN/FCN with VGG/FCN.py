@@ -3,7 +3,30 @@ import torch.nn as nn
 import torchvision
 import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
-
+import numpy as np
+"""
+background
+aeroplane
+bicycle
+bird
+boat
+bottle
+bus
+car
+cat
+chair
+cow
+diningtable
+dog
+horse
+motorbike
+person
+pottedplant
+sheep
+sofa
+train
+tvmonitor
+"""
 transform = transforms.Compose([
     # you can add other transformations in this list
     transforms.Resize((416, 416)),
@@ -124,16 +147,14 @@ model = model.cuda()
 
 loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=5e-4, momentum=0.9)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5000, gamma=0.5)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10000, gamma=0.5)
 cost = 0
 
 iterations = []
 train_losses = []
-train_acc = []
 print("starting")
-for epoch in range(10):
+for epoch in range(1):
     model.train()
-    correct = 0
     for X, Y in train_loader:
         torch.cuda.empty_cache()
         X = X.to(cuda)
@@ -145,22 +166,17 @@ for epoch in range(10):
         cost.backward()
         optimizer.step()
         scheduler.step()
-        prediction = output.data.max(1)[1]
-        correct += prediction.eq(Y.data).sum()
 
     print("Epoch : {:>4} / cost : {:>.9}".format(epoch + 1, cost))
     print("lr : {:>6}".format(scheduler.optimizer.state_dict()['param_groups'][0]['lr']))
     iterations.append(epoch)
     train_losses.append(cost.tolist())
-    train_acc.append((100*correct/len(train_loader.dataset)).tolist())
 
 torch.save(model.state_dict(), './vggfcn model/model.pt')
 
-plt.subplot(121)
+plt.subplot(111)
 plt.plot(range(1, len(iterations)+1), train_losses, 'b--')
-plt.subplot(122)
-plt.plot(range(1, len(iterations)+1), train_acc, 'b-')
-plt.title('loss and accuracy')
+plt.title('loss')
 plt.show()
 # del train_loader
 # torch.cuda.empty_cache()

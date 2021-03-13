@@ -13,21 +13,10 @@ transform = transforms.Compose([
 ])
 
 test = torchvision.datasets.VOCSegmentation(root='VOC-2012/',
-                                             year='2012', image_set='val', transform=transform,
+                                             year='2012', image_set='train', transform=transform,
                                              target_transform=transform, download=True)
 
 test_loader = torch.utils.data.DataLoader(dataset=test, batch_size=1, shuffle=False)
-
-transform_2 = transforms.Compose([
-    # you can add other transformations in this list
-    transforms.Resize((416, 416))
-])
-
-img = torchvision.datasets.VOCSegmentation(root='VOC-2012/',
-                                             year='2012', image_set='val', transform=transform_2,
-                                             target_transform=transform_2, download=True)
-
-img_loader = torch.utils.data.DataLoader(dataset=img, batch_size=1, shuffle=False)
 
 cuda = torch.device('cuda')
 
@@ -136,11 +125,13 @@ model = VGG()
 model.load_state_dict(torch.load('./vggfcn model/model.pt'))
 model.eval()
 
-
+z = 0
 for x, y in test_loader:
     a = model(x)
     b = y
-    break
+    z = z + 1
+    if z > 0 :
+        break
 
 a = a.detach()
 a = a.numpy()
@@ -151,15 +142,18 @@ b = np.squeeze(b, 0)
 b = np.squeeze(b, 0)
 
 fig = plt.figure()
-c = np.zeros((416, 416))
+c = np.zeros((21, 416, 416))
+
 for i in range(21):
     for j in range(416):
         for k in range(416):
-            if(c[j][k] <= a[i][j][k]):
-                c[j][k] = a[i][j][k]
-ax1 = fig.add_subplot(121)
-ax1.imshow(c, interpolation='nearest', cmap=cm.Greys_r)
-ax1 = fig.add_subplot(122)
-ax1.imshow(b, interpolation='nearest', cmap=cm.Greys_r)
+            c[i][j][k] = a[i][j][k]
+
+for i in range(21):
+    ax1 = fig.add_subplot(5, 5, i+1)
+    ax1.imshow(c[i], interpolation='nearest')
+
+ax1 = fig.add_subplot(5, 5, 24)
+ax1.imshow(b, interpolation='nearest')
 
 plt.show()

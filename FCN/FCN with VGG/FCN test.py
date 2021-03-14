@@ -13,7 +13,7 @@ transform = transforms.Compose([
 ])
 
 test = torchvision.datasets.VOCSegmentation(root='VOC-2012/',
-                                             year='2012', image_set='train', transform=transform,
+                                             year='2012', image_set='val', transform=transform,
                                              target_transform=transform, download=True)
 
 test_loader = torch.utils.data.DataLoader(dataset=test, batch_size=1, shuffle=False)
@@ -130,7 +130,7 @@ for x, y in test_loader:
     a = model(x)
     b = y
     z = z + 1
-    if z > 0 :
+    if z > 3:
         break
 
 a = a.detach()
@@ -148,12 +148,14 @@ for i in range(21):
     for j in range(416):
         for k in range(416):
             c[i][j][k] = a[i][j][k]
+            c[i][j][k] = int(c[i][j][k])
 
+print(c)
 for i in range(21):
     ax1 = fig.add_subplot(5, 5, i+1)
-    ax1.imshow(c[i], interpolation='nearest')
+    ax1.imshow(c[i], interpolation='nearest', cmap=plt.cm.rainbow)
 
 ax1 = fig.add_subplot(5, 5, 24)
-ax1.imshow(b, interpolation='nearest')
+ax1.imshow(b, interpolation='nearest', cmap=plt.cm.rainbow)
 
 plt.show()

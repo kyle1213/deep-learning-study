@@ -37,7 +37,7 @@ train = torchvision.datasets.VOCSegmentation(root='VOC-2012/',
                                              year='2012', image_set='train', transform=transform,
                                              target_transform=transform, download=True)
 
-train_loader = torch.utils.data.DataLoader(dataset=train, batch_size=1, shuffle=True)
+train_loader = torch.utils.data.DataLoader(dataset=train, batch_size=4, shuffle=True)
 
 cuda = torch.device('cuda')
 
@@ -142,27 +142,38 @@ class VGG(nn.Module):
         return score  # size=(N, n_class, x.H/1, x.W/1)
 
 
+def own_MSE(output, target):
+    loss = torch.mean((output - target)**2)
+
+    return loss
+
 model = VGG()
 model = model.cuda()
 
 loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=5e-4, momentum=0.9)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10000, gamma=0.5)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50000, gamma=0.5)
 cost = 0
-
 iterations = []
 train_losses = []
 print("starting")
-for epoch in range(1):
+for epoch in range(10):
     model.train()
     for X, Y in train_loader:
         torch.cuda.empty_cache()
+        target = np.zeros((4, 21, 416, 416))
+        for i in range(4):
+            for j in range(21):
+                for k in range(416):
+                    for l in range(416):
+                        if(Y[i][0][k][l] == j):
+                            target[i][j][k][l] = j
+        target = torch.tensor(target)
         X = X.to(cuda)
-        Y = Y.to(cuda)
+        target = target.to(cuda)
         optimizer.zero_grad()
         output = model(X)
-        Y = Y.squeeze(1)
-        cost = loss(output, Y.long())
+        cost = own_MSE(output, target.long())
         cost.backward()
         optimizer.step()
         scheduler.step()

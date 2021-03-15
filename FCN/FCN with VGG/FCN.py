@@ -4,43 +4,128 @@ import torchvision
 import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
 import numpy as np
-"""
-background
-aeroplane
-bicycle
-bird
-boat
-bottle
-bus
-car
-cat
-chair
-cow
-diningtable
-dog
-horse
-motorbike
-person
-pottedplant
-sheep
-sofa
-train
-tvmonitor
-"""
-transform = transforms.Compose([
-    # you can add other transformations in this list
-    transforms.Resize((416, 416)),
-    transforms.ToTensor()
-])
+from d2l import torch as d2l
+import os
 
-train = torchvision.datasets.VOCSegmentation(root='VOC-2012/',
-                                             year='2012', image_set='train', transform=transform,
-                                             target_transform=transform, download=True)
 
-train_loader = torch.utils.data.DataLoader(dataset=train, batch_size=4, shuffle=True)
+VOC_COLORMAP = [[0, 0, 0], [128, 0, 0], [0, 128, 0], [128, 128, 0],
+                [0, 0, 128], [128, 0, 128], [0, 128, 128], [128, 128, 128],
+                [64, 0, 0], [192, 0, 0], [64, 128, 0], [192, 128, 0],
+                [64, 0, 128], [192, 0, 128], [64, 128, 128], [192, 128, 128],
+                [0, 64, 0], [128, 64, 0], [0, 192, 0], [128, 192, 0],
+                [0, 64, 128]]
+VOC_CLASSES = ['background', 'aeroplane', 'bicycle', 'bird', 'boat',
+               'bottle', 'bus', 'car', 'cat', 'chair', 'cow',
+               'diningtable', 'dog', 'horse', 'motorbike', 'person',
+               'potted plant', 'sheep', 'sofa', 'train', 'tv/monitor']
+
+voc_dir = d2l.download_extract('voc2012', 'VOCdevkit/VOC2012')
+
+def read_voc_images(voc_dir, is_train=True):
+    """Read all VOC feature and label images."""
+    txt_fname = os.path.join(voc_dir, 'ImageSets', 'Segmentation',
+                             'train.txt' if is_train else 'val.txt')
+    mode = torchvision.io.image.ImageReadMode.RGB
+    with open(txt_fname, 'r') as f:
+        images = f.read().split()
+    features, labels = [], []
+    for i, fname in enumerate(images):
+        features.append(torchvision.io.read_image(os.path.join(
+            voc_dir, 'JPEGImages', f'{fname}.jpg')))
+        labels.append(torchvision.io.read_image(os.path.join(
+            voc_dir, 'SegmentationClass' ,f'{fname}.png'), mode))
+    return features, labels
+
+train_features, train_labels = read_voc_images(voc_dir, True)
+
+def build_colormap2label():
+    """Build an RGB color to label mapping for segmentation."""
+    colormap2label = torch.zeros(256 ** 3, dtype=torch.long)
+    for i, colormap in enumerate(VOC_COLORMAP):
+        colormap2label[(colormap[0]*256 + colormap[1])*256 + colormap[2]] = i
+    return colormap2label
+
+
+#@save
+def voc_label_indices(colormap, colormap2label):
+    """Map an RGB color to a label."""
+    colormap = colormap.permute(1,2,0).numpy().astype('int32')
+    idx = ((colormap[:, :, 0] * 256 + colormap[:, :, 1]) * 256
+           + colormap[:, :, 2])
+    return colormap2label[idx]
+
+
+#@save
+def voc_rand_crop(feature, label, height, width):
+    """Randomly crop for both feature and label images."""
+    rect = torchvision.transforms.RandomCrop.get_params(feature,
+                                                        (height, width))
+    feature = torchvision.transforms.functional.crop(feature, *rect)
+    label = torchvision.transforms.functional.crop(label, *rect)
+    return feature, label
+
+
+class VOCSegDataset(torch.utils.data.Dataset):
+    """A customized dataset to load VOC dataset."""
+
+    def __init__(self, is_train, crop_size, voc_dir):
+        self.transform = torchvision.transforms.Normalize(
+            mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        self.crop_size = crop_size
+        features, labels = read_voc_images(voc_dir, is_train=is_train)
+        self.features = [self.normalize_image(feature)
+                         for feature in self.filter(features)]
+        self.labels = self.filter(labels)
+        self.colormap2label = build_colormap2label()
+        print('read ' + str(len(self.features)) + ' examples')
+
+    def normalize_image(self, img):
+        return self.transform(img.float())
+
+    def filter(self, imgs):
+        return [img for img in imgs if (
+            img.shape[1] >= self.crop_size[0] and
+            img.shape[2] >= self.crop_size[1])]
+
+    def __getitem__(self, idx):
+        feature, label = voc_rand_crop(self.features[idx], self.labels[idx],
+                                       *self.crop_size)
+        return (feature, voc_label_indices(label, self.colormap2label))
+
+    def __len__(self):
+        return len(self.features)
+
+
+crop_size = (320, 480)
+voc_train = VOCSegDataset(True, crop_size, voc_dir)
+voc_test = VOCSegDataset(False, crop_size, voc_dir)
+
+
+#@save
+def load_data_voc(batch_size, crop_size):
+    """Download and load the VOC2012 semantic dataset."""
+    voc_dir = d2l.download_extract('voc2012', os.path.join(
+        'VOCdevkit', 'VOC2012'))
+    train_iter = torch.utils.data.DataLoader(
+        VOCSegDataset(True, crop_size, voc_dir), batch_size,
+        shuffle=True, drop_last=True)
+    return train_iter
+
 
 cuda = torch.device('cuda')
 
+n = 5
+imgs = train_features[0:n] + train_labels[0:n]
+imgs = [img.permute(1,2,0) for img in imgs]
+d2l.show_images(imgs, 2, n);
+y = voc_label_indices(train_labels[0], build_colormap2label())
+y[105:115, 130:140], VOC_CLASSES[1]
+imgs = []
+for _ in range(n):
+    imgs += voc_rand_crop(train_features[0], train_labels[0], 200, 300)
+
+imgs = [img.permute(1,2,0) for img in imgs]
+d2l.show_images(imgs[::2] + imgs[1::2], 2, n);
 
 class VGG(nn.Module):
     def __init__(self):
@@ -147,33 +232,26 @@ def own_MSE(output, target):
 
     return loss
 
+
 model = VGG()
 model = model.cuda()
 
 loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=5e-4, momentum=0.9)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50000, gamma=0.5)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5000, gamma=0.5)
 cost = 0
 iterations = []
 train_losses = []
 print("starting")
-for epoch in range(10):
+for epoch in range(100):
     model.train()
-    for X, Y in train_loader:
+    for X, Y in load_data_voc(4, (416, 416)):
         torch.cuda.empty_cache()
-        target = np.zeros((4, 21, 416, 416))
-        for i in range(4):
-            for j in range(21):
-                for k in range(416):
-                    for l in range(416):
-                        if(Y[i][0][k][l] == j):
-                            target[i][j][k][l] = j
-        target = torch.tensor(target)
         X = X.to(cuda)
-        target = target.to(cuda)
+        Y = Y.to(cuda)
         optimizer.zero_grad()
         output = model(X)
-        cost = own_MSE(output, target.long())
+        cost = loss(output, Y.long())
         cost.backward()
         optimizer.step()
         scheduler.step()

@@ -54,21 +54,13 @@ def voc_label_indices(colormap, colormap2label):
     return colormap2label[idx]
 
 
-def voc_rand_crop(feature, label, height, width):
-    """Randomly crop for both feature and label images."""
-    rect = torchvision.transforms.RandomCrop.get_params(feature,
-                                                        (height, width))
-    feature = torchvision.transforms.functional.crop(feature, *rect)
-    label = torchvision.transforms.functional.crop(label, *rect)
-    return feature, label
-
-
 class VOCSegDataset(torch.utils.data.Dataset):
     """A customized dataset to load VOC dataset."""
 
     def __init__(self, is_train, crop_size, _voc_dir):
         self.transform = torchvision.transforms.Normalize(
             mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        self.resize = torchvision.transforms.Resize((320, 480))
         self.crop_size = crop_size
         features, labels = read_voc_images(_voc_dir, is_train=is_train)
         self.features = [self.normalize_image(feature)
@@ -78,7 +70,7 @@ class VOCSegDataset(torch.utils.data.Dataset):
         print('read ' + str(len(self.features)) + ' examples')
 
     def normalize_image(self, img):
-        return self.transform(img.float())
+        return self.resize(self.transform(img.float()))
 
     def filter(self, imgs):
         return [img for img in imgs if (
@@ -86,9 +78,9 @@ class VOCSegDataset(torch.utils.data.Dataset):
             img.shape[2] >= self.crop_size[1])]
 
     def __getitem__(self, idx):
-        feature, label = voc_rand_crop(self.features[idx], self.labels[idx],
-                                       *self.crop_size)
-        return (feature, voc_label_indices(label, self.colormap2label))
+        feature = self.features[idx]
+        label = self.labels[idx]
+        return feature, voc_label_indices(label, self.colormap2label)
 
     def __len__(self):
         return len(self.features)
@@ -97,8 +89,8 @@ class VOCSegDataset(torch.utils.data.Dataset):
 def load_data_voc(batch_size, crop_size, _voc_dir):
     """Download and load the VOC2012 semantic dataset."""
     train_iter = torch.utils.data.DataLoader(
-        VOCSegDataset(False, crop_size, _voc_dir), batch_size,
-        shuffle=True, drop_last=True, num_workers=0)
+        VOCSegDataset(True, crop_size, _voc_dir), batch_size,
+        shuffle=False, drop_last=True, num_workers=0)
     return train_iter
 
 
@@ -217,6 +209,7 @@ for x, y in load_data_voc(1, (320, 480), voc_dir):
     if z > 2:
         break
 
+
 a = a.detach()
 a = a.numpy()
 b = b.detach()
@@ -230,8 +223,11 @@ c = np.zeros((21, 320, 480))
 for i in range(21):
     for j in range(320):
         for k in range(480):
+            if(a[i][j][k] <= 0):
+                a[i][j][k] = 0
             c[i][j][k] = a[i][j][k]
             c[i][j][k] = int(c[i][j][k])
+
 
 print(c)
 for i in range(21):

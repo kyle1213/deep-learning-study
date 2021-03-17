@@ -206,7 +206,7 @@ for x, y in load_data_voc(1, (320, 480), voc_dir):
     a = model(x)
     b = y
     z = z + 1
-    if z > 2:
+    if z > 7:
         break
 
 
@@ -226,15 +226,15 @@ for i in range(21):
             if(a[i][j][k] <= 0):
                 a[i][j][k] = 0
             c[i][j][k] = a[i][j][k]
-            c[i][j][k] = int(c[i][j][k])
+            c[i][j][k] = round(c[i][j][k])
 
 
 print(c)
 for i in range(21):
     ax1 = fig.add_subplot(5, 5, i+1)
-    ax1.imshow(c[i], interpolation='nearest')
+    ax1.imshow(c[i], interpolation='nearest', cmap=plt.cm.rainbow)
 
 ax1 = fig.add_subplot(5, 5, 24)
-ax1.imshow(b, interpolation='nearest')
+ax1.imshow(b, interpolation='nearest', cmap=plt.cm.rainbow)
 
 plt.show()

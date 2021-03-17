@@ -216,12 +216,12 @@ model = model.cuda()
 
 loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=5e-4, momentum=0.9)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5000, gamma=0.5)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10000, gamma=0.5)
 cost = 0
 iterations = []
 train_losses = []
 print("starting")
-for epoch in range(50):
+for epoch in range(150):
     model.train()
     for X, Y in load_data_voc(4, (320, 480), voc_dir):
         torch.cuda.empty_cache()

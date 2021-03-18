@@ -16,15 +16,15 @@ test_transform = transforms.Compose(
     [transforms.ToTensor(),
      transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))])
 
-train = torchvision.datasets.CIFAR100(root='CIFAR-100/',
+train = torchvision.datasets.CIFAR100(root='D:/User_DATA/Desktop/파이토치 연습/CIFAR-100',
                                       train=True, transform=train_transform,
                                       download=True)
-test = torchvision.datasets.CIFAR100(root='CIFAR-100/',
+test = torchvision.datasets.CIFAR100(root='D:/User_DATA/Desktop/파이토치 연습/CIFAR-100',
                                      train=False, transform=test_transform,
                                      download=True)
 
-train_loader = torch.utils.data.DataLoader(dataset=train, batch_size=128, shuffle=True)
-test_loader = torch.utils.data.DataLoader(dataset=test, batch_size=128, shuffle=True)
+train_loader = torch.utils.data.DataLoader(dataset=train, batch_size=100, shuffle=True)
+test_loader = torch.utils.data.DataLoader(dataset=test, batch_size=100, shuffle=True)
 
 cuda = torch.device('cuda')
 

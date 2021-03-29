@@ -205,12 +205,6 @@ class VGG(nn.Module):
         return score  # size=(N, n_class, x.H/1, x.W/1)
 
 
-def own_MSE(output, target):
-    loss = torch.mean((output - target)**2)
-
-    return loss
-
-
 model = VGG()
 model = model.cuda()
 
@@ -239,32 +233,9 @@ for epoch in range(150):
     iterations.append(epoch)
     train_losses.append(cost.tolist())
 
-torch.save(model.state_dict(), './vggfcn model/model.pt')
+torch.save(model.state_dict(), './fcn vgg model/model.pt')
 
 plt.subplot(111)
 plt.plot(range(1, len(iterations)+1), train_losses, 'b--')
 plt.title('loss')
 plt.show()
-# del train_loader
-# torch.cuda.empty_cache()
-"""
-model.eval()
-correct = 0
-for data, target in test_loader:
-    data = data.to(cuda)
-    target = target.to(cuda)
-    output = model(data)
-    prediction = output.data.max(1)[1]
-    correct += prediction.eq(target.data).sum()
-
-print('Test set: Accuracy: {:.2f}%'.format(100. * correct / len(test_loader.dataset)))
-
-plt.subplot(121)
-plt.plot(range(1, len(iterations)+1), train_losses, 'b--')
-plt.plot(range(1, len(iterations)+1), test_losses, 'r--')
-plt.subplot(122)
-plt.plot(range(1, len(iterations)+1), train_acc, 'b-')
-plt.plot(range(1, len(iterations)+1), test_acc, 'r-')
-plt.title('loss and accuracy')
-plt.show()
-"""

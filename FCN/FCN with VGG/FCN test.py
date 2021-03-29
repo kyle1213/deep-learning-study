@@ -198,7 +198,7 @@ class VGG(nn.Module):
 
 
 model = VGG()
-model.load_state_dict(torch.load('./vggfcn model/model.pt'))
+model.load_state_dict(torch.load('./fcn vgg model/model.pt'))
 model.eval()
 
 z = 0
@@ -223,8 +223,10 @@ c = np.zeros((21, 320, 480))
 for i in range(21):
     for j in range(320):
         for k in range(480):
-            if(a[i][j][k] <= 0):
+            if(a[i][j][k] < 6):
                 a[i][j][k] = 0
+            else:
+                a[i][j][k] = 6
             c[i][j][k] = a[i][j][k]
             c[i][j][k] = round(c[i][j][k])
 

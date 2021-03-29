@@ -2,8 +2,7 @@ import torch
 import torch.nn as nn
 import torchvision
 import matplotlib.pyplot as plt
-import torchvision.transforms as transforms
-import numpy as np
+from torchsummary import summary as summary_
 from d2l import torch as d2l
 import os
 
@@ -207,6 +206,8 @@ class VGG(nn.Module):
 
 model = VGG()
 model = model.cuda()
+
+summary_(model, (3, 32, 32), batch_size=1)
 
 loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=5e-4, momentum=0.9)

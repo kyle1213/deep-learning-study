@@ -2,8 +2,7 @@ import torch
 import torch.nn as nn
 import torchvision
 import matplotlib.pyplot as plt
-import torchvision.transforms as transforms
-import numpy as np
+from torchsummary import summary as summary_
 from d2l import torch as d2l
 import os
 
@@ -251,9 +250,11 @@ class ResNet(nn.Module):
 model = ResNet()
 model = model.cuda()
 
+summary_(model, (3, 480, 320), batch_size=1)
+
 loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=5e-4, momentum=0.9)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10000, gamma=0.5)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=7000, gamma=0.5)
 cost = 0
 iterations = []
 train_losses = []

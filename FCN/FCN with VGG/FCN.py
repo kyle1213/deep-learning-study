@@ -207,7 +207,7 @@ class VGG(nn.Module):
 model = VGG()
 model = model.cuda()
 
-summary_(model, (3, 32, 32), batch_size=1)
+summary_(model, (3, 320, 480), batch_size=1)
 
 loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=5e-4, momentum=0.9)

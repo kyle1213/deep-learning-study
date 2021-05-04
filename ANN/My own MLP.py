@@ -29,7 +29,6 @@ train = torchvision.datasets.MNIST('/MNIST', train=True, download=True,
 test = torchvision.datasets.MNIST('/MNIST', train=True, download=True,
                                   transform=transforms.Compose([transforms.ToTensor(),
                                                                 transforms.Normalize((0.1307,), (0.3081,))]))
-print("hi")
 
 train_loader = torch.utils.data.DataLoader(dataset=train, batch_size=100, shuffle=False)
 test_loader = torch.utils.data.DataLoader(dataset=train, batch_size=100, shuffle=False)
@@ -40,26 +39,39 @@ cuda = torch.device('cuda')
 class MLP(nn.Module):
     def __init__(self):
         super(MLP, self).__init__()
-        self.W1 = torch.nn.Parameter(torch.empty(784, 256).cuda())
-        self.W2 = torch.nn.Parameter(torch.empty(256, 128).cuda())
-        self.W3 = torch.nn.Parameter(torch.empty(128, 10).cuda())
+        self.W1 = torch.nn.Parameter(torch.empty(4, 784).cuda())
+        self.W1_ = torch.nn.Parameter(torch.empty(4, 784, 256).cuda())
+        self.W2_ = torch.nn.Parameter(torch.empty(4, 256, 128).cuda())
+        self.W3_ = torch.nn.Parameter(torch.empty(4, 128, 10).cuda())
+        self.W4 = torch.nn.Parameter(torch.empty(4, 10).cuda())
 
-        torch.nn.init.uniform_(self.W1, a=-math.sqrt(1/784), b=math.sqrt(1/784))
-        torch.nn.init.uniform_(self.W2, a=-math.sqrt(1 / 256), b=math.sqrt(1 / 256))
-        torch.nn.init.uniform_(self.W3, a=-math.sqrt(1 / 128), b=math.sqrt(1 / 128))
+        torch.nn.init.uniform_(self.W1, a=-math.sqrt(1 / 784), b=math.sqrt(1 / 784))
+        torch.nn.init.uniform_(self.W1_, a=-math.sqrt(1 / 784), b=math.sqrt(1 / 784))
+        torch.nn.init.uniform_(self.W2_, a=-math.sqrt(1 / 256), b=math.sqrt(1 / 256))
+        torch.nn.init.uniform_(self.W3_, a=-math.sqrt(1 / 128), b=math.sqrt(1 / 128))
+        torch.nn.init.uniform_(self.W4, a=-math.sqrt(1 / 40), b=math.sqrt(1 / 40))
 
         self.relu = nn.ReLU()
 
     def forward(self, x):
-
         x = x.view(x.size(0), -1)
-        print(x.size(), self.W1.size())
+        x = torch.stack([x, x, x, x], dim=1)
         x = torch.mul(x, self.W1)
         print(x.size())
+
+        x = torch.matmul(x, self.W1_)
         x = self.relu(x)
-        x = torch.matmul(x, self.W2)
+
+        x = torch.matmul(x, self.W2_)
         x = self.relu(x)
-        x = torch.matmul(x, self.W3)
+
+        x = torch.matmul(x, self.W3_)
+        x = self.relu(x)
+
+        x = torch.mul(x, self.W4)
+        x = torch.sum(x, dim=1)
+        x = x.view(x.size(0), -1)
+
         return x
 
 

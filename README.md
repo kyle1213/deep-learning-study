@@ -9,5 +9,7 @@ papers I read : ImageNet Classification with Deep Convolutional Neural Networks 
                 U-Net: Convolutional Networks for Biomedical Image Segmentation - UNet
                 Learning Deconvolution Network for Semantic Segmentation! - Deconvolutional Networks / used deconv many times, upsampling feature maps little by little
                 Attention is All You need : Transformer / used multi head self attention / no rnn based methods used, only attention and fully connected layer
+                MLP-Mixer: An all-MLP Architecture for Vision : MLP / Replaced convolition into MLP. Slice images into several patches, vectorize patches, and use same weight matrices for each vectorized patches
+                
                
             

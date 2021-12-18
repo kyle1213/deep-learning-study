@@ -21,7 +21,7 @@ train = torchvision.datasets.ImageNet('D:\datasets\ILSVRC2012', split='train', d
 test = torchvision.datasets.ImageNet('D:\datasets\ILSVRC2012', split='val', download=None, transform=test_transform)
 
 train_loader = torch.utils.data.DataLoader(dataset=train, batch_size=100, shuffle=True)
-test_loader = torch.utils.data.DataLoader(dataset=test, batch_size=100, shuffle=True)
+test_loader = torch.utils.data.DataLoader(dataset=test, batch_size=50, shuffle=True)
 
 cuda = torch.device('cuda')
 
@@ -123,7 +123,7 @@ test_losses = []
 train_acc = []
 test_acc = []
 
-for epoch in range(50):
+for epoch in range(0):
     model.train()
     correct = 0
     for X, Y in tqdm(train_loader):
@@ -179,3 +179,5 @@ plt.plot(range(1, len(iterations)+1), train_acc, 'b-')
 plt.plot(range(1, len(iterations)+1), test_acc, 'r-')
 plt.title('loss and accuracy')
 plt.show()
+
+torch.save(model.state_dict(), './vgg - imagenet model/model.pt')

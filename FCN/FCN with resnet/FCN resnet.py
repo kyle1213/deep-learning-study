@@ -111,7 +111,7 @@ class ResNet(nn.Module):
         self.conv2 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=1, stride=2, padding=0)
         self.conv3 = nn.Conv2d(in_channels=256, out_channels=512, kernel_size=1, stride=2, padding=0)
 
-        self.batch1 = nn.BatchNorm2d(128)
+        self.batch1 = nn.BatchNorm2d(   128)
         self.batch2 = nn.BatchNorm2d(256)
         self.batch3 = nn.BatchNorm2d(512)
 

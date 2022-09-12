@@ -4,7 +4,7 @@ import torchvision
 import torchvision.transforms as transforms
 
 import matplotlib.pyplot as plt
-
+from tqdm import tqdm
 
 train_transform = transforms.Compose(
     [transforms.RandomCrop(32, padding=4),
@@ -16,10 +16,10 @@ test_transform = transforms.Compose(
     [transforms.ToTensor(),
      transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))])
 
-train = torchvision.datasets.CIFAR100(root='D:/User_DATA/Desktop/파이토치 연습/CIFAR-100',
+train = torchvision.datasets.CIFAR100(root='D:\datasets\CIFAR-100',
                                       train=True, transform=train_transform,
                                       download=True)
-test = torchvision.datasets.CIFAR100(root='D:/User_DATA/Desktop/파이토치 연습/CIFAR-100',
+test = torchvision.datasets.CIFAR100(root='D:\datasets\CIFAR-100',
                                      train=False, transform=test_transform,
                                      download=True)
 
@@ -134,7 +134,7 @@ test_acc = []
 for epoch in range(100):
     model.train()
     correct = 0
-    for X, Y in train_loader:
+    for X, Y in tqdm(train_loader):
         X = X.to(cuda)
         Y = Y.to(cuda)
         optimizer.zero_grad()

@@ -1,12 +1,18 @@
-architecture : 
-learning rate : 
-scheduler : 
-weight decay : 
-momentum : 
+###hyperparameters###
+model_architecture : 
+learning_rate : 
+lr_scheduler : 
+weight_decay : 
 optimizer : 
 epochs : 
-data set : 
-batch size : 
+data_set : 
+batch_size : 
 parameter : 
 
+
 other details : 
+
+-----------------------------
+things to record while/after train/val/test
+
+loss, acc, time spent

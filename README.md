@@ -1,2 +1,2 @@
 # deep-learning-study
-these are my deeplearning presetations for seminar and summary note
+deeplearning presetations and summary notes for paper review seminar and some implementation

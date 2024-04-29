@@ -4,5 +4,8 @@
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../../Real-time-human-pose-estimation-by-pytorch" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../LOL win rate project" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../test" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../자기주도연구1" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../gitothers/SLM-Lab" vcs="Git" />
   </component>
 </project>

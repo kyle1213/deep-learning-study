@@ -12,6 +12,10 @@
     <orderEntry type="module" module-name="기계학습팀플" />
     <orderEntry type="module" module-name="챌린지" />
     <orderEntry type="module" module-name="MLP study" />
+    <orderEntry type="module" module-name="test" />
+    <orderEntry type="module" module-name="SLM-Lab" />
+    <orderEntry type="module" module-name="ML-Agents_Project" />
+    <orderEntry type="module" module-name="자기주도연구1" />
   </component>
   <component name="PyDocumentationSettings">
     <option name="format" value="PLAIN" />

@@ -3,13 +3,17 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/../LOL win rate project/.idea/LOL win rate project.iml" filepath="$PROJECT_DIR$/../LOL win rate project/.idea/LOL win rate project.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../ML-Agents_Project/.idea/ML-Agents_Project.iml" filepath="$PROJECT_DIR$/../../ML-Agents_Project/.idea/ML-Agents_Project.iml" />
       <module fileurl="file://$PROJECT_DIR$/../MLP study/.idea/MLP study.iml" filepath="$PROJECT_DIR$/../MLP study/.idea/MLP study.iml" />
       <module fileurl="file://$PROJECT_DIR$/../Raspberry Pi/.idea/Raspberry Pi.iml" filepath="$PROJECT_DIR$/../Raspberry Pi/.idea/Raspberry Pi.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../Real-time-human-pose-estimation-by-pytorch/.idea/Real-time-human-pose-estimation-by-pytorch.iml" filepath="$PROJECT_DIR$/../../Real-time-human-pose-estimation-by-pytorch/.idea/Real-time-human-pose-estimation-by-pytorch.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../gitothers/SLM-Lab/.idea/SLM-Lab.iml" filepath="$PROJECT_DIR$/../../gitothers/SLM-Lab/.idea/SLM-Lab.iml" />
       <module fileurl="file://$PROJECT_DIR$/../Speech Recognition/.idea/Speech Recognition.iml" filepath="$PROJECT_DIR$/../Speech Recognition/.idea/Speech Recognition.iml" />
       <module fileurl="file://$PROJECT_DIR$/../ajou cat/.idea/ajou cat.iml" filepath="$PROJECT_DIR$/../ajou cat/.idea/ajou cat.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/deeplearning study.iml" filepath="$PROJECT_DIR$/.idea/deeplearning study.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../test/.idea/test.iml" filepath="$PROJECT_DIR$/../test/.idea/test.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../기계학습팀플/.idea/기계학습팀플.iml" filepath="$PROJECT_DIR$/../../기계학습팀플/.idea/기계학습팀플.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../자기주도연구1/.idea/자기주도연구1.iml" filepath="$PROJECT_DIR$/../자기주도연구1/.idea/자기주도연구1.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../챌린지/.idea/챌린지.iml" filepath="$PROJECT_DIR$/../../챌린지/.idea/챌린지.iml" />
     </modules>
   </component>
